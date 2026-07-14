@@ -21,6 +21,7 @@ type
     Button6: TButton;
     Button7: TButton;
     Button8: TButton;
+    Button9: TButton;
     Edit1: TEdit;
     Edit2: TEdit;
     Memo1: TMemo;
@@ -33,6 +34,7 @@ type
     procedure Button6Click(Sender: TObject);
     procedure Button7Click(Sender: TObject);
     procedure Button8Click(Sender: TObject);
+    procedure Button9Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure TreeView1SelectionChanged(Sender: TObject);
   private
@@ -108,8 +110,12 @@ begin
 
   while CurrentNode <> nil do
   begin
-    log2({$I %LINENUM%},' ['+CurrentNode.Index.ToString+']: '+CurrentNode.Text);
-
+    if CurrentNode.Data = nil then   log2({$I %LINENUM%},' ['+CurrentNode.Text+']: nil');
+    if CurrentNode.Data <> nil then
+    begin
+      log2({$I %LINENUM%},' ['+CurrentNode.Text+']: Free memory');
+      CurrentNode.Data:=nil;
+    end;
     CurrentNode := CurrentNode.GetNext;
   end;
 end;
@@ -141,6 +147,15 @@ end;
 procedure TForm1.Button8Click(Sender: TObject);
 begin
   TreeView1.Items.Clear
+end;
+
+procedure TForm1.Button9Click(Sender: TObject);
+begin
+  if(Treeview1.Selected <> nil) then
+  begin
+    TreeView1.Selected.Data:= MyData;
+  end;
+
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
