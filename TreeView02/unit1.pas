@@ -35,7 +35,7 @@ type
     procedure Button7Click(Sender: TObject);
     procedure Button8Click(Sender: TObject);
     procedure Button9Click(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure TreeView1SelectionChanged(Sender: TObject);
   private
 
@@ -158,9 +158,9 @@ begin
 
 end;
 
-procedure TForm1.FormCreate(Sender: TObject);
+procedure TForm1.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
-
+  MyData.Free;
 end;
 
 procedure TForm1.TreeView1SelectionChanged(Sender: TObject);
