@@ -16,6 +16,8 @@ type
     Button1: TButton;
     Button10: TButton;
     Button11: TButton;
+    Button12: TButton;
+    Button13: TButton;
     Button2: TButton;
     Button3: TButton;
     Button4: TButton;
@@ -30,6 +32,8 @@ type
     TreeView1: TTreeView;
     procedure Button10Click(Sender: TObject);
     procedure Button11Click(Sender: TObject);
+    procedure Button12Click(Sender: TObject);
+    procedure Button13Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
@@ -53,6 +57,26 @@ var
 implementation
 
 {$R *.lfm}
+
+function FindNodeWithPath_(ATreeView: TTreeView; TextPath: String): TTreeNode;
+var
+  s: String;
+begin
+  Result := nil;
+  for s in TextPath.Split('/') do       //PathDelim
+  begin
+    if (Result = nil) then
+    begin
+      if s = '' then Result := ATreeView.Items.FindTopLvlNode('/')
+      else Result := ATreeView.Items.FindTopLvlNode(s);
+    end
+    else
+    begin
+      Result.Expanded := true;
+      Result := Result.FindNode(s);
+    end;
+  end;
+end;
 
 procedure TForm1.Button1Click(Sender: TObject);
 begin
@@ -98,6 +122,30 @@ begin
     TreeView1.Items.AddChild(TreeView1.Items.GetLastSubNode, IntToStr(TreeView1.Items.GetLastSubNode.Index+1)+' Subfolder');
       TreeView1.Items.AddChild(TreeView1.Items.GetLastSubNode, IntToStr(TreeView1.Items.GetLastSubNode.Index+1)+' Subfolder');
   TreeView1.Items.Add(nil, IntToStr(TreeView1.Items.GetLastNode.Index+1)+ ' Root');
+end;
+
+procedure TForm1.Button12Click(Sender: TObject);
+var
+  PathPtr: PString;
+  StoredPath: string;
+begin
+  New(PathPtr);
+  PathPtr^ := 'Root/cc';
+
+  TreeView1.Items.AddChildObject(Treeview1.Selected, 'Root', PathPtr);
+
+  if (Treeview1.Selected <> nil) and (Treeview1.Selected.Data <> nil) then
+  begin
+    StoredPath := PString(Treeview1.Selected.Data)^;
+    log2({$I %LINENUM%},' StoredPath: '+StoredPath);
+  end;
+
+  Dispose(PathPtr);
+end;
+
+procedure TForm1.Button13Click(Sender: TObject);
+begin
+  TreeView1.Selected := FindNodeWithPath_(TreeView1,Edit1.Text);
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
