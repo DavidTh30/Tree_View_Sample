@@ -12,15 +12,15 @@ procedure log2(LINENUM_: integer; message_: string);
 function FindNodeByPath(ATreeView: TTreeView; APath, ADelimiter: string): TTreeNode;
 
 type
-  PTMyNodeData = ^TMyNodeData;
-  TMyNodeData = class
+  P_TclassData = ^TclassData;
+  TclassData = class
     CustomName: string;
     CustomID: Integer;
   end;
 
 type
-  PTMyNodeData2 = ^TMyNodeData2;
-  TMyNodeData2 = record
+  P_TRecordData = ^TRecordData;
+  TRecordData = record
     CustomName: string;
     CustomID: Integer;
   end;
@@ -36,7 +36,7 @@ type
 var
   TextBox1:TEdit;
   Memo_:TMemo;
-  MyData: TMyNodeData;
+  MyData: TRecordData;
 
 implementation
 

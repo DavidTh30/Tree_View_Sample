@@ -22,9 +22,9 @@ type
     Button4: TButton;
     Button5: TButton;
     Button6: TButton;
-    Button7: TButton;
-    Button8: TButton;
-    Button9: TButton;
+    Cmd_ClearTextBox: TButton;
+    Cmd_ClearTreeView: TButton;
+    Cmd_AddDateInToNode: TButton;
     Edit1: TEdit;
     Edit2: TEdit;
     Memo1: TMemo;
@@ -38,9 +38,9 @@ type
     procedure Button4Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure Button6Click(Sender: TObject);
-    procedure Button7Click(Sender: TObject);
-    procedure Button8Click(Sender: TObject);
-    procedure Button9Click(Sender: TObject);
+    procedure Cmd_ClearTextBoxClick(Sender: TObject);
+    procedure Cmd_ClearTreeViewClick(Sender: TObject);
+    procedure Cmd_AddDateInToNodeClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure TreeView1SelectionChanged(Sender: TObject);
   private
@@ -77,16 +77,22 @@ begin
 end;
 
 procedure TForm1.Button1Click(Sender: TObject);
+var
+  P_TempoData: P_TRecordData;
 begin
+  New(P_TempoData);
+
+  P_TempoData^.CustomName := '#######';
+  P_TempoData^.CustomID := 789;
 
   if(Treeview1.Selected <> nil) then
   begin
-    TreeView1.Items.AddChildObject(TreeView1.Selected, 'Node Text', MyData);
+    TreeView1.Items.AddChildObject(TreeView1.Selected, 'Node Text', P_TempoData);
   end;
 
   if(Treeview1.Selected = nil) then
   begin
-    TreeView1.Items.AddChildObject(nil, 'Node Text', MyData);
+    TreeView1.Items.AddChildObject(nil, 'Node Text', P_TempoData);
   end;
 end;
 
@@ -111,31 +117,28 @@ end;
 
 procedure TForm1.Button11Click(Sender: TObject);
 var
+  P_TempoData: P_TRecordData;
   TextPath: String;
-  TMyNodeDataPtr: PTMyNodeData;
   s:string;
   i:integer;
   h:integer;
   l:integer;
 begin
   TextPath := Edit1.Text;
-  New(TMyNodeDataPtr);
-  TMyNodeDataPtr:=@MyData;
-  //TMyNodeDataPtr^.Create;
-  TMyNodeDataPtr^.CustomName := 'Data1234';
-  TMyNodeDataPtr^.CustomID:=133;
+
+  New(P_TempoData);
+  P_TempoData^:=MyData;
 
   h:=high(TextPath.Split('/'));
   l:=low(TextPath.Split('/'));
   i:=l;
   for s in TextPath.Split('/') do       //PathDelim
   begin
-    if i=h then Treeview1.Selected:=TreeView1.Items.AddChildObject(Treeview1.Selected, s, TMyNodeDataPtr^);
+    if i=h then Treeview1.Selected:=TreeView1.Items.AddChildObject(Treeview1.Selected, s, P_TempoData);
     if i<>h then Treeview1.Selected:=TreeView1.Items.AddChild(Treeview1.Selected, s);
     i:=i+1;
   end;
 
-  //Dispose(TMyNodeDataPtr);
 end;
 
 procedure TForm1.Button13Click(Sender: TObject);
@@ -169,12 +172,11 @@ begin
 
   if (Treeview1.Selected <> nil) then
   if (Treeview1.Selected.Data <> nil) then
-  if (Assigned(Treeview1.Selected.Data)) then
-  if TypeInfo(Treeview1.Selected.Data) = TypeInfo(TMyNodeData.ClassInfo) then
-  //if TypeInfo(Treeview1.Selected.Data) = TypeInfo(PTMyNodeData) then
   begin
-    log2({$I %LINENUM%},' CustomName: '+TMyNodeData(Treeview1.Selected.Data).CustomName );
-    log2({$I %LINENUM%},' CustomID: '+TMyNodeData(Treeview1.Selected.Data).CustomID.ToString );
+    if GetTypeKind(Treeview1.Selected.Data) = GetTypeKind(P_TRecordData) then  log2({$I %LINENUM%},' Type: P_TRecordData');
+    if GetTypeKind(Treeview1.Selected.Data) = GetTypeKind(TRecordData) then  log2({$I %LINENUM%},' Type: TRecordData');
+    log2({$I %LINENUM%},' CustomName: '+P_TRecordData(Treeview1.Selected.Data)^.CustomName );
+    log2({$I %LINENUM%},' CustomID: '+P_TRecordData(Treeview1.Selected.Data)^.CustomID.ToString );
   end
   else
   begin
@@ -184,11 +186,13 @@ begin
   if (Treeview1.Selected <> nil) then
   if (Treeview1.Selected.Data = nil) then
     log2({$I %LINENUM%},' Selected.Data: nil');
+
 end;
 
 procedure TForm1.Button3Click(Sender: TObject);
 var
   CurrentNode: TTreeNode;
+  P_TempoData: P_TRecordData;
 begin
   CurrentNode := TreeView1.Items.GetFirstNode;
 
@@ -198,7 +202,8 @@ begin
     if CurrentNode.Data <> nil then
     begin
       log2({$I %LINENUM%},' ['+CurrentNode.Text+']: Free memory');
-      TMyNodeData(CurrentNode.Data).Free;
+      P_TempoData:=CurrentNode.Data;
+      Dispose(P_TempoData);
       CurrentNode.Data:=nil;
     end;
     CurrentNode := CurrentNode.GetNext;
@@ -224,81 +229,90 @@ begin
     TreeView1.Items.AddChild(TreeView1.Items[TreeView1.Selected.AbsoluteIndex], IntToStr(TreeView1.Items[TreeView1.Selected.AbsoluteIndex].GetLastChild.Index+1)+' Child in child node');
 end;
 
-procedure TForm1.Button7Click(Sender: TObject);
+procedure TForm1.Cmd_ClearTextBoxClick(Sender: TObject);
 begin
   Memo_.Clear;
 end;
 
-procedure TForm1.Button8Click(Sender: TObject);
+procedure TForm1.Cmd_ClearTreeViewClick(Sender: TObject);
+var
+  CurrentNode: TTreeNode;
+  P_TempoData: P_TRecordData;
 begin
+CurrentNode := TreeView1.Items.GetFirstNode;
+
+  while CurrentNode <> nil do
+  begin
+    if CurrentNode.Data <> nil then
+    begin
+      P_TempoData:=CurrentNode.Data;
+      Dispose(P_TempoData);
+      CurrentNode.Data:=nil;
+    end;
+    CurrentNode := CurrentNode.GetNext;
+  end;
+
   TreeView1.Items.Clear
 end;
 
-procedure TForm1.Button9Click(Sender: TObject);
+procedure TForm1.Cmd_AddDateInToNodeClick(Sender: TObject);
 var
-  MyData2: TMyNodeData;
-  TMyNodeDataPtr: PTMyNodeData;
+  P_TempoData: P_TRecordData;
 begin
-  MyData2:= TMyNodeData.Create;
-  MyData2.CustomName := 'Hello';
-  MyData2.CustomID := 123;
-
-  New(TMyNodeDataPtr);
-  TMyNodeDataPtr^:= MyData2;
-  //TMyNodeDataPtr:= @MyData2;
-
-  //TMyNodeDataPtr^.CustomName := 'Hello';
-  //TMyNodeDataPtr^.CustomID := 123;
-
   if(Treeview1.Selected <> nil) then
   begin
-    TreeView1.Selected.Data:= TMyNodeDataPtr^;
+    if (TreeView1.Selected.Data <> nil) then
+    begin
+      P_TempoData:=TreeView1.Selected.Data;
+      Dispose(P_TempoData);
+      TreeView1.Selected.Data:=nil;
+    end;
+    P_TempoData:=nil;
+    New(P_TempoData);
+    P_TempoData^.CustomName := '......';
+    P_TempoData^.CustomID := 456;
+    TreeView1.Selected.Data:= P_TempoData;
   end;
 
-  Dispose(TMyNodeDataPtr);
-  //MyData2.Free;
+  //Dispose(TMyNodeDataPtr);
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 var
   CurrentNode: TTreeNode;
-  Cleanup:boolean;
+  P_TempoData: P_TRecordData;
 begin
-  Cleanup:=false;
+
   CurrentNode := TreeView1.Items.GetFirstNode;
 
   while CurrentNode <> nil do
   begin
     if CurrentNode.Data <> nil then
     begin
-      Cleanup:=true;
+      P_TempoData:=CurrentNode.Data;
+      Dispose(P_TempoData);
+      CurrentNode.Data:=nil;
     end;
     CurrentNode := CurrentNode.GetNext;
   end;
 
-  if Cleanup then
-  if MyData <>  nil then
-  if @MyData <>  nil then
-  if Assigned(TMyNodeData(MyData)) then
-  if @TMyNodeData(MyData)<>nil then
-  begin
-    MyData.Free;
-
-  end;
 end;
 
 procedure TForm1.TreeView1SelectionChanged(Sender: TObject);
 begin
-  if(Treeview1.Selected <> nil) then
-  if(Treeview1.Selected.Data <> nil) then
-  if (Assigned(Treeview1.Selected.Data)) then
-  if TypeInfo(Treeview1.Selected.Data) = TypeInfo(TMyNodeData.ClassInfo) then
-  //if TypeInfo(Treeview1.Selected.Data) = TypeInfo(TMyNodeData) then
-  //if TypeInfo(Treeview1.Selected.Data) = TypeInfo(PTMyNodeData) then
+  if (Treeview1.Selected <> nil) then
+  if (Treeview1.Selected.Data <> nil) then
   begin
-    log2({$I %LINENUM%},' CustomName: '+TMyNodeData(Treeview1.Selected.Data).CustomName);
-    log2({$I %LINENUM%},' CustomID: '+TMyNodeData(Treeview1.Selected.Data).CustomID.ToString );
+    if GetTypeKind(Treeview1.Selected.Data) = GetTypeKind(P_TRecordData) then  log2({$I %LINENUM%},' Type: P_TRecordData');
+    if GetTypeKind(Treeview1.Selected.Data) = GetTypeKind(TRecordData) then  log2({$I %LINENUM%},' Type: TRecordData');
+    log2({$I %LINENUM%},' CustomName: '+P_TRecordData(Treeview1.Selected.Data)^.CustomName );
+    log2({$I %LINENUM%},' CustomID: '+P_TRecordData(Treeview1.Selected.Data)^.CustomID.ToString );
+  end
+  else
+  begin
+    log2({$I %LINENUM%},' Not TMyNodeData');
   end;
+
   if(Treeview1.Selected <> nil) then
   if(Treeview1.Selected.Parent <> nil) then
   begin
@@ -341,7 +355,6 @@ begin
   TextBox1:= Edit1;
   Memo_:=Memo1;
 
-  MyData := TMyNodeData.Create;
   MyData.CustomName := 'Hello';
   MyData.CustomID := 123;
 
