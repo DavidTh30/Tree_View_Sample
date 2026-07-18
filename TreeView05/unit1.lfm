@@ -1,29 +1,29 @@
 object Form1: TForm1
-  Left = 505
+  Left = 472
   Height = 373
-  Top = 117
+  Top = 164
   Width = 767
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Treeview05'
   ClientHeight = 373
   ClientWidth = 767
-  Position = poWorkAreaCenter
-  LCLVersion = '4.6.0.0'
   OnClose = FormClose
+  Position = poWorkAreaCenter
+  LCLVersion = '3.4.0.0'
   object Edit1: TEdit
     Left = 64
-    Height = 21
+    Height = 23
     Top = 8
     Width = 288
     TabOrder = 0
     Text = 'Root/Folder/Subfolder'
   end
   object Button1: TButton
-    Left = 16
+    Left = 8
     Height = 36
     Top = 150
-    Width = 106
+    Width = 114
     Caption = 'Add node with data'
     TabOrder = 1
     OnClick = Button1Click
@@ -35,8 +35,8 @@ object Form1: TForm1
     Width = 247
     ReadOnly = True
     TabOrder = 2
-    Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
     OnSelectionChanged = TreeView1SelectionChanged
+    Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
   end
   object Memo1: TMemo
     AnchorSideRight.Control = Owner
@@ -51,46 +51,46 @@ object Form1: TForm1
     WordWrap = False
   end
   object Button2: TButton
-    Left = 16
+    Left = 8
     Height = 36
     Top = 104
-    Width = 106
+    Width = 114
     Caption = 'Status'
     TabOrder = 4
     OnClick = Button2Click
   end
   object Button3: TButton
-    Left = 134
+    Left = 128
     Height = 36
     Top = 248
-    Width = 106
+    Width = 114
     Caption = 'Free data'
     TabOrder = 5
     OnClick = Button3Click
   end
   object Button4: TButton
-    Left = 134
+    Left = 128
     Height = 36
     Top = 104
-    Width = 106
+    Width = 114
     Caption = 'Add Root'
     TabOrder = 6
     OnClick = Button4Click
   end
   object Button5: TButton
-    Left = 134
-    Height = 34
+    Left = 128
+    Height = 36
     Top = 152
-    Width = 106
+    Width = 114
     Caption = 'Add Child in Root'
     TabOrder = 7
     OnClick = Button5Click
   end
   object Button6: TButton
-    Left = 134
-    Height = 34
+    Left = 128
+    Height = 36
     Top = 200
-    Width = 106
+    Width = 114
     Caption = 'Add Child in Child'
     TabOrder = 8
     OnClick = Button6Click
@@ -102,8 +102,8 @@ object Form1: TForm1
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 0
-    Height = 21
-    Top = 352
+    Height = 23
+    Top = 350
     Width = 767
     Anchors = [akLeft, akRight, akBottom]
     ReadOnly = True
@@ -113,16 +113,16 @@ object Form1: TForm1
     Left = 8
     Height = 36
     Top = 296
-    Width = 106
+    Width = 114
     Caption = 'Clear text'
     TabOrder = 10
     OnClick = Cmd_ClearTextBoxClick
   end
   object Cmd_ClearTreeView: TButton
-    Left = 134
+    Left = 128
     Height = 36
     Top = 296
-    Width = 106
+    Width = 114
     Caption = 'Clear TreeView'
     TabOrder = 11
     OnClick = Cmd_ClearTreeViewClick
@@ -131,7 +131,7 @@ object Form1: TForm1
     Left = 360
     Height = 32
     Top = 45
-    Width = 106
+    Width = 120
     Caption = 'Add data in to node'
     TabOrder = 12
     OnClick = Cmd_AddDateInToNodeClick
@@ -149,7 +149,7 @@ object Form1: TForm1
     Left = 360
     Height = 32
     Top = 8
-    Width = 106
+    Width = 120
     Caption = 'Full create'
     TabOrder = 14
     OnClick = Button11Click
@@ -163,42 +163,74 @@ object Form1: TForm1
     TabOrder = 15
     OnClick = Button13Click
   end
-  object Edit3: TEdit
-    Left = 64
-    Height = 21
-    Top = 32
-    Width = 288
-    TabOrder = 16
-    Text = 'String'
-  end
   object Edit4: TEdit
     Left = 64
-    Height = 21
+    Height = 23
     Top = 56
     Width = 288
-    TabOrder = 17
+    TabOrder = 16
     Text = '123'
     OnEditingDone = Edit4EditingDone
   end
   object Label1: TLabel
     Left = 7
-    Height = 13
+    Height = 15
     Top = 10
-    Width = 29
+    Width = 32
     Caption = 'Node:'
   end
   object Label2: TLabel
     Left = 7
-    Height = 13
+    Height = 15
     Top = 40
-    Width = 28
+    Width = 27
     Caption = 'Type:'
   end
   object Label3: TLabel
     Left = 7
-    Height = 13
+    Height = 15
     Top = 64
-    Width = 30
+    Width = 31
     Caption = 'Value:'
+  end
+  object ComboBox1: TComboBox
+    Left = 248
+    Height = 23
+    Top = 32
+    Width = 48
+    ItemHeight = 15
+    ItemIndex = 0
+    Items.Strings = (
+      '/'
+      '\'
+    )
+    ReadOnly = True
+    TabOrder = 17
+    Text = '/'
+    OnEditingDone = ComboBox1EditingDone
+  end
+  object ComboBox2: TComboBox
+    Left = 64
+    Height = 23
+    Top = 32
+    Width = 100
+    ItemHeight = 15
+    ItemIndex = 0
+    Items.Strings = (
+      'String'
+      'Integer'
+      'Float'
+      'Coolean'
+    )
+    ReadOnly = True
+    TabOrder = 18
+    Text = 'String'
+  end
+  object Label4: TLabel
+    Left = 184
+    Height = 15
+    Top = 40
+    Width = 58
+    Caption = 'PathDelim:'
   end
 end

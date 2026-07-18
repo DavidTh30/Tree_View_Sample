@@ -25,13 +25,15 @@ type
     Cmd_ClearTextBox: TButton;
     Cmd_ClearTreeView: TButton;
     Cmd_AddDateInToNode: TButton;
+    ComboBox1: TComboBox;
+    ComboBox2: TComboBox;
     Edit1: TEdit;
     Edit2: TEdit;
-    Edit3: TEdit;
     Edit4: TEdit;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
+    Label4: TLabel;
     Memo1: TMemo;
     TreeView1: TTreeView;
     procedure Button10Click(Sender: TObject);
@@ -46,6 +48,7 @@ type
     procedure Cmd_ClearTextBoxClick(Sender: TObject);
     procedure Cmd_ClearTreeViewClick(Sender: TObject);
     procedure Cmd_AddDateInToNodeClick(Sender: TObject);
+    procedure ComboBox1EditingDone(Sender: TObject);
     procedure Edit4EditingDone(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure TreeView1SelectionChanged(Sender: TObject);
@@ -61,17 +64,38 @@ var
 implementation
 
 {$R *.lfm}
+function GetTextPath__(TargetNode: TTreeNode; const PathDelim_:string = '/'): string;
+var
+  CurrentNode: TTreeNode;
+  s:string = '';
+begin
 
-function FindNodeWithPath_(ATreeView: TTreeView; TextPath: String): TTreeNode;
+  if (TargetNode <> nil) then
+  begin
+    CurrentNode:=TargetNode;
+    s:=CurrentNode.Text;
+    CurrentNode:=CurrentNode.Parent;
+    while CurrentNode <> nil do
+    begin
+      s:=CurrentNode.Text+PathDelim_+s;
+      CurrentNode:=CurrentNode.Parent;
+    end;
+  end;
+
+ Result:=s;
+
+end;
+
+function FindNodeWithPath_(ATreeView: TTreeView; TextPath: String; const PathDelim_:string = '/'): TTreeNode;
 var
   s: String;
 begin
   Result := nil;
-  for s in TextPath.Split('/') do       //PathDelim
+  for s in TextPath.Split(PathDelim_) do
   begin
     if (Result = nil) then
     begin
-      if s = '' then Result := ATreeView.Items.FindTopLvlNode('/')
+      if s = '' then Result := ATreeView.Items.FindTopLvlNode(PathDelim_)
       else Result := ATreeView.Items.FindTopLvlNode(s);
     end
     else
@@ -88,7 +112,7 @@ var
 begin
   New(P_TempoData);
 
-  P_TempoData^.CustomName := edit3.Text;
+  P_TempoData^.CustomName := ComboBox2.Text;
   P_TempoData^.CustomID := StrToInt(edit4.Text);
 
   if(Treeview1.Selected <> nil) then
@@ -105,10 +129,15 @@ end;
 procedure TForm1.Button10Click(Sender: TObject);
 var
   TargetNode: TTreeNode;
+  s:string;
 begin
 
+  s:=Edit1.Text;
+  if ComboBox1.Text = '\' then s  := StringReplace(s, ComboBox1.Text, '/',[rfReplaceAll, rfIgnoreCase]);
+
+
   //TargetNode := FindNodeByPath(TreeView1, 'Root\Folder\Subfolder', '\');
-  TargetNode := TreeView1.Items.FindNodeWithTextPath(Edit1.Text);
+  TargetNode := TreeView1.Items.FindNodeWithTextPath(s);
 
   if TargetNode <> nil then
   begin
@@ -151,7 +180,7 @@ begin
     end;
 
     New(P_TempoData);
-    P_TempoData^.CustomName := edit3.Text;
+    P_TempoData^.CustomName := ComboBox2.Text;
     P_TempoData^.CustomID := StrToInt(edit4.Text);
     TargetNode.Data:= P_TempoData;
     log2({$I %LINENUM%},' Succeed!');
@@ -160,12 +189,12 @@ begin
   if TargetNode = nil then
   begin
     log2({$I %LINENUM%},' case path not found!');
-    h:=high(TextPath.Split('/'));
-    l:=low(TextPath.Split('/'));
+    h:=high(TextPath.Split(ComboBox1.Text));
+    l:=low(TextPath.Split(ComboBox1.Text));
     i:=l;
     S_Step:='';
     StepNode:=nil;
-    for s in TextPath.Split('/') do       //PathDelim
+    for s in TextPath.Split(ComboBox1.Text) do       //PathDelim
     begin
       S_Step:=S_Step+s;
       log2({$I %LINENUM%},' S_Step: '+S_Step);
@@ -182,7 +211,7 @@ begin
             TargetNode.Data:=nil;
           end;
           New(P_TempoData);
-          P_TempoData^.CustomName := edit3.Text;
+          P_TempoData^.CustomName := ComboBox2.Text;
           P_TempoData^.CustomID := StrToInt(edit4.Text);
           TargetNode.Data:= P_TempoData;
           log2({$I %LINENUM%},' Break!');
@@ -194,7 +223,7 @@ begin
         if i=h then
         begin
           New(P_TempoData);
-          P_TempoData^.CustomName := edit3.Text;
+          P_TempoData^.CustomName := ComboBox2.Text;
           P_TempoData^.CustomID := StrToInt(edit4.Text);
           //Treeview1.Selected:=TreeView1.Items.AddChildObject(TargetNode, s, P_TempoData);
           StepNode:=TreeView1.Items.AddChildObject(StepNode, s, P_TempoData);
@@ -208,7 +237,7 @@ begin
         end;
       end;
       i:=i+1;
-      S_Step:=S_Step+'/';
+      S_Step:=S_Step+ComboBox1.Text;
     end;
   end;
 
@@ -218,7 +247,7 @@ end;
 
 procedure TForm1.Button13Click(Sender: TObject);
 begin
-  TreeView1.Selected := FindNodeWithPath_(TreeView1,Edit1.Text);
+  TreeView1.Selected := FindNodeWithPath_(TreeView1,Edit1.Text, ComboBox1.Text);
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
@@ -344,12 +373,21 @@ begin
     end;
     P_TempoData:=nil;
     New(P_TempoData);
-    P_TempoData^.CustomName := edit3.Text;
+    P_TempoData^.CustomName := ComboBox2.Text;
     P_TempoData^.CustomID := StrToInt(edit4.Text);
     TreeView1.Selected.Data:= P_TempoData;
   end;
 
   //Dispose(TMyNodeDataPtr);
+end;
+
+procedure TForm1.ComboBox1EditingDone(Sender: TObject);
+begin
+  if(Treeview1.Selected <> nil) then Edit2.Text  := GetTextPath__(Treeview1.Selected,ComboBox1.Text);
+  if(Treeview1.Selected = nil) then Edit2.Text  := '';
+
+  if ComboBox1.Text = '\' then Edit1.Text  := StringReplace(Edit1.Text, '/', ComboBox1.Text,[rfReplaceAll, rfIgnoreCase]);
+  if ComboBox1.Text = '/' then Edit1.Text  := StringReplace(Edit1.Text, '\', ComboBox1.Text,[rfReplaceAll, rfIgnoreCase]);
 end;
 
 procedure TForm1.Edit4EditingDone(Sender: TObject);
@@ -379,6 +417,8 @@ begin
 end;
 
 procedure TForm1.TreeView1SelectionChanged(Sender: TObject);
+var
+  CurrentNode: TTreeNode;
 begin
   if (Treeview1.Selected <> nil) then
   if (Treeview1.Selected.Data <> nil) then
@@ -396,6 +436,9 @@ begin
   if(Treeview1.Selected <> nil) then
   if(Treeview1.Selected.Parent <> nil) then
   begin
+    CurrentNode:=Treeview1.Selected.Parent;
+    if CurrentNode= nil then log2({$I %LINENUM%},' Parent: nil');
+    if CurrentNode <> nil then log2({$I %LINENUM%},' Parent: '+CurrentNode.Text);
     log2({$I %LINENUM%},' Text: '+Treeview1.Selected.Text);
     log2({$I %LINENUM%},' Index:'+Treeview1.Selected.Index.ToString);
     log2({$I %LINENUM%},' AlphaSort: '+Treeview1.Selected.AlphaSort.ToInteger.ToString);
@@ -418,15 +461,20 @@ begin
   if(Treeview1.Selected <> nil) then
   if(Treeview1.Selected.Parent <> nil) then
   begin
-    //Edit2.Text:=Treeview1.Selected.Parent.Text+'/'+Treeview1.Selected.Text;
-    //Edit2.Text:=Treeview1.Selected.GetPrev.Text+'/'+Treeview1.Selected.Text;
-    //Edit2.Text:=Treeview1.Selected.Parent.GetTextPath+'/'+Treeview1.Selected.Text;
-    Edit2.Text:=Treeview1.Selected.GetTextPath;
+    ////Edit2.Text:=Treeview1.Selected.Parent.Text+'/'+Treeview1.Selected.Text;
+    ////Edit2.Text:=Treeview1.Selected.GetPrev.Text+'/'+Treeview1.Selected.Text;
+    ////Edit2.Text:=Treeview1.Selected.Parent.GetTextPath+'/'+Treeview1.Selected.Text;
+    //Edit2.Text:=Treeview1.Selected.GetTextPath;
+    ////Edit2.Text  := StringReplace(Edit2.Text, '/', ComboBox1.Text,[rfReplaceAll, rfIgnoreCase]);
   end
   else
   begin
-    Edit2.Text:=Treeview1.Selected.Text;
+    //Edit2.Text:=Treeview1.Selected.Text;
   end;
+
+  if(Treeview1.Selected <> nil) then Edit2.Text  := GetTextPath__(Treeview1.Selected,ComboBox1.Text);
+  if(Treeview1.Selected = nil) then Edit2.Text  := '';
+
 end;
 
 constructor TForm1.Create(TheOwner: TComponent);
