@@ -6,23 +6,27 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, StrUtils, ComCtrls;
-
-procedure Button_Click(Sender: TObject);
 procedure log2(LINENUM_: integer; message_: string);
 function FindNodeByPath(ATreeView: TTreeView; APath, ADelimiter: string): TTreeNode;
 
 type
   P_TclassData = ^TclassData;
   TclassData = class
-    CustomName: string;
-    CustomID: Integer;
+    Name_: string;
+    Prefix: string;
+    Str_: string;
+    Int_: Integer;
+    Suffix: string;
   end;
 
 type
   P_TRecordData = ^TRecordData;
   TRecordData = record
-    CustomName: string;
-    CustomID: Integer;
+    Name_: string;
+    Prefix: string;
+    Str_: string;
+    Int_: Integer;
+    Suffix: string;
   end;
 
 type
@@ -34,7 +38,6 @@ type
   end;
 
 var
-  TextBox1:TEdit;
   Memo_:TMemo;
   MyData: TRecordData;
 
@@ -43,11 +46,6 @@ implementation
 procedure log2(LINENUM_: integer; message_: string);
 begin
   Memo_.Append(LINENUM_.ToString+message_);
-end;
-
-procedure Button_Click(Sender: TObject);
-begin
-  TextBox1.Text:='OK';
 end;
 
 procedure Unit_.Button2Click(Sender: TObject);
