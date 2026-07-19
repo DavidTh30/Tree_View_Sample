@@ -13,20 +13,37 @@ type
   { TForm1 }
 
   TForm1 = class(TForm)
+    Cmd_AddData1: TButton;
+    Cmd_Root: TButton;
     Cmd_ClearTextBox: TButton;
     Cmd_ClearTextBox1: TButton;
-    Cmd_ClearTextBox2: TButton;
+    Cmd_Free: TButton;
+    Cmd_AddData: TButton;
+    Cmd_Create: TButton;
+    Cmd_ChildInRoot: TButton;
+    Cmd_ChildInChild: TButton;
     ComboBox1: TComboBox;
+    Edit1: TEdit;
     Edit2: TEdit;
+    Edit3: TEdit;
+    Edit4: TEdit;
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
     Label4: TLabel;
     Memo1: TMemo;
-    SimpleIPCServer1: TSimpleIPCServer;
     TreeView1: TTreeView;
+    procedure Cmd_AddData1Click(Sender: TObject);
+    procedure Cmd_AddDataClick(Sender: TObject);
+    procedure Cmd_ChildInChildClick(Sender: TObject);
+    procedure Cmd_ChildInRootClick(Sender: TObject);
     procedure Cmd_ClearTextBox1Click(Sender: TObject);
-    procedure Cmd_ClearTextBox2Click(Sender: TObject);
+    procedure Cmd_CreateClick(Sender: TObject);
+    procedure Cmd_FreeClick(Sender: TObject);
     procedure Cmd_ClearTextBoxClick(Sender: TObject);
+    procedure Cmd_RootClick(Sender: TObject);
+    procedure ComboBox1EditingDone(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
-    procedure SimpleIPCServer1MessageQueued(Sender: TObject);
     procedure TreeView1SelectionChanged(Sender: TObject);
   private
 
@@ -40,7 +57,6 @@ type
 
 var
   Form1: TForm1;
-  Message_: array[0..20] of string;
 
 implementation
 
@@ -102,29 +118,30 @@ begin
 
   if TargetNode <> nil then
   begin
-    SendMessage_({$I %LINE%}+' case found path!');
-    ////TargetNode.ExpandParents;
-    ////TargetNode.Selected := True;
-    ////TreeView1.SetFocus;
-    //h:=high(TextPath.Split(ComboBox1.Text));
-    //l:=low(TextPath.Split(ComboBox1.Text));
-    //if (TargetNode.Data <> nil) then
-    //begin
-    //  P_TempoData:=TargetNode.Data;
-    //  Dispose(P_TempoData);
-    //  TargetNode.Data:=nil;
-    //end;
-    //
-    //New(P_TempoData);
-    //P_TempoData^.CustomName := ComboBox2.Text;
-    //P_TempoData^.CustomID := StrToInt(edit4.Text);
-    //TargetNode.Data:= P_TempoData;
-    SendMessage_({$I %LINE%}+' Succeed!');
+    Log2({$I %LINENUM%},' case found path!');
+    //TargetNode.ExpandParents;
+    //TargetNode.Selected := True;
+    //TreeView1.SetFocus;
+    h:=high(TextPath.Split(ComboBox1.Text));
+    l:=low(TextPath.Split(ComboBox1.Text));
+    if (TargetNode.Data <> nil) then
+    begin
+      P_TempoData:=TargetNode.Data;
+      Dispose(P_TempoData);
+      TargetNode.Data:=nil;
+    end;
+
+    New(P_TempoData);
+    P_TempoData^.Name_ := Edit3.Text;
+    P_TempoData^.Str_ := Edit4.Text;
+    TargetNode.Data:= P_TempoData;
+    Log2({$I %LINENUM%},' Succeed!');
+    exit;
   end;
 
   if TargetNode = nil then
   begin
-    SendMessage_({$I %LINE%}+' case path not found!');
+    Log2({$I %LINENUM%},' case path not found!');
     h:=high(TextPath.Split(ComboBox1.Text));
     l:=low(TextPath.Split(ComboBox1.Text));
     //log2({$I %LINENUM%},' h= '+h.ToString);
@@ -135,13 +152,13 @@ begin
     for s in TextPath.Split(ComboBox1.Text) do       //PathDelim
     begin
       S_Step:=S_Step+s;
-      SendMessage_({$I %LINE%}+' S_Step: '+S_Step);
+      Log2({$I %LINENUM%},' S_Step: '+S_Step);
       TargetNode := TreeView1.Items.FindNodeWithTextPath(S_Step);
       if TargetNode <> nil then
       begin
-        SendMessage_({$I %LINE%}+' Found!');
+        Log2({$I %LINENUM%},' Found!');
         StepNode:= TargetNode;
-        if (i+1) = h then
+        if (i) = h then
         begin
           if (TargetNode.Data <> nil) then
           begin
@@ -150,51 +167,32 @@ begin
             TargetNode.Data:=nil;
           end;
           New(P_TempoData);
-          P_TempoData^.Name_ := s;
-          P_TempoData^.Str_ := Words[h]; //ComboBox2.Text;
-          //P_TempoData^.Suffix := 'byte';
-          SendMessage_({$I %LINE%}+' Add data to node');
+          P_TempoData^.Name_ := Edit3.Text;
+          P_TempoData^.Str_ := Edit4.Text;
+          Log2({$I %LINENUM%},' Add data to node');
           TargetNode.Data:= P_TempoData;
-          SendMessage_({$I %LINE%}+' Break!');
+          Log2({$I %LINENUM%},' Break!');
           break;
         end;
       end;
       if TargetNode = nil then
       begin
-        SendMessage_({$I %LINE%}+' Not found!');
+        Log2({$I %LINENUM%},' Not found!');
         if i=h then
         begin
-          StepNode:=TreeView1.Items.AddChild(StepNode, s);
-          SendMessage_({$I %LINE%}+' Creat node only');
-          SendMessage_({$I %LINE%}+' Succeed!');
+          New(P_TempoData);
+          P_TempoData^.Name_ := Edit3.Text;
+          P_TempoData^.Str_ := Edit4.Text;
+          StepNode:=TreeView1.Items.AddChildObject(StepNode, s,P_TempoData);
+          Log2({$I %LINENUM%},' Creat node + add data');
+          Log2({$I %LINENUM%},' Succeed!');
           break;
         end;
         if i<>h then
         begin
-          if (i+1) = h then
-          begin
-            New(P_TempoData);
-            P_TempoData^.Name_ := s;
-            P_TempoData^.Str_ := Words[h]; //ComboBox2.Text;
-            //P_TempoData^.Suffix := 'byte';
-            StepNode:=TreeView1.Items.AddChildObject(StepNode, s, P_TempoData);
-            SendMessage_({$I %LINE%}+' Creat node + add data');
-            SendMessage_({$I %LINE%}+' Succeed!');
-            break;
-          end;
-          if (h=0) then
-          begin
-            StepNode:=TreeView1.Items.AddChild(StepNode, s);
-            SendMessage_({$I %LINE%}+' Creat node only');
-            SendMessage_({$I %LINE%}+' Succeed!');
-            break;
-          end;
-          if ((i+1)<>h) then
-          begin
-            StepNode:=TreeView1.Items.AddChild(StepNode, s);
-            SendMessage_({$I %LINE%}+' Creat node only');
-            SendMessage_({$I %LINE%}+' Succeed!')
-          end;
+          StepNode:=TreeView1.Items.AddChild(StepNode, s);
+          Log2({$I %LINENUM%},' Creat node only');
+          Log2({$I %LINENUM%},' Succeed!');
         end;
       end;
       i:=i+1;
@@ -213,10 +211,10 @@ begin
 
   while CurrentNode <> nil do
   begin
-    if CurrentNode.Data = nil then SendMessage_({$I %LINE%}+' ['+CurrentNode.Text+']: nil');
+    if CurrentNode.Data = nil then log2({$I %LINENUM%},' ['+CurrentNode.Text+']: nil');
     if CurrentNode.Data <> nil then
     begin
-      SendMessage_({$I %LINE%}+' ['+CurrentNode.Text+']: Free memory');
+      log2({$I %LINENUM%},' ['+CurrentNode.Text+']: Free memory');
       P_TempoData:=CurrentNode.Data;
       Dispose(P_TempoData);
       CurrentNode.Data:=nil;
@@ -297,7 +295,26 @@ begin
   //CreateTree('root\sub01\sub');
 end;
 
-procedure TForm1.Cmd_ClearTextBox2Click(Sender: TObject);
+procedure TForm1.Cmd_RootClick(Sender: TObject);
+begin
+  TreeView1.Items.Add(nil,Edit1.Text);
+end;
+
+procedure TForm1.ComboBox1EditingDone(Sender: TObject);
+var
+  s:string;
+begin
+  if(Treeview1.Selected <> nil) then Edit2.Text  := GetTextPath__(Treeview1.Selected,ComboBox1.Text);
+  if(Treeview1.Selected = nil) then Edit2.Text  := '';
+
+  s:=Edit1.Text;
+  if ComboBox1.Text = '/' then
+    Edit1.Text := StringReplace(s, '\', ComboBox1.Text, [rfReplaceAll, rfIgnoreCase]);
+  if ComboBox1.Text = '\' then
+    Edit1.Text := StringReplace(s, '/', ComboBox1.Text, [rfReplaceAll, rfIgnoreCase]);
+end;
+
+procedure TForm1.Cmd_FreeClick(Sender: TObject);
 begin
   FreeTree();
 end;
@@ -305,6 +322,58 @@ end;
 procedure TForm1.Cmd_ClearTextBox1Click(Sender: TObject);
 begin
   ClearTree();
+end;
+
+procedure TForm1.Cmd_CreateClick(Sender: TObject);
+begin
+  CreateTree(Edit1.Text);
+end;
+
+procedure TForm1.Cmd_AddData1Click(Sender: TObject);
+begin
+  if (Treeview1.Selected <> nil) then
+  begin
+    TreeView1.Items.AddChild(Treeview1.Selected, Edit1.Text);
+  end;
+end;
+
+procedure TForm1.Cmd_AddDataClick(Sender: TObject);
+var
+  P_TempoData: P_TRecordData;
+begin
+  if (Treeview1.Selected <> nil) then
+  begin
+    if (Treeview1.Selected.Data <> nil) then
+    begin
+      P_TempoData:=Treeview1.Selected.Data;
+      Dispose(P_TempoData);
+      Treeview1.Selected.Data:=nil;
+    end;
+    New(P_TempoData);
+    P_TempoData^.Name_ := Edit3.Text;
+    P_TempoData^.Str_ := Edit4.Text;
+
+    SendMessage_({$I %LINE%}+' Add data to node');
+    Treeview1.Selected.Data:= P_TempoData
+  end;
+end;
+
+procedure TForm1.Cmd_ChildInChildClick(Sender: TObject);
+begin
+  if (Treeview1.Selected <> nil) then
+  if (Treeview1.Selected.Parent<>nil) then
+  begin;
+    TreeView1.Items.AddChild(Treeview1.Selected, Edit1.Text);
+  end;
+end;
+
+procedure TForm1.Cmd_ChildInRootClick(Sender: TObject);
+begin
+  if (Treeview1.Selected <> nil) then
+  if (Treeview1.Selected.Parent=nil) then
+  begin;
+    TreeView1.Items.AddChild(Treeview1.Selected, Edit1.Text);
+  end;
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -325,37 +394,7 @@ begin
     end;
     CurrentNode := CurrentNode.GetNext;
   end;
-  SimpleIPCServer1.StopServer;
-end;
 
-procedure TForm1.SimpleIPCServer1MessageQueued(Sender: TObject);
-var
-  i:integer;
-  s:string;
-begin
-  SimpleIPCServer1.ReadMessage;
-  s:=SimpleIPCServer1.StringMessage;
-
-  if (Upcase(s)='CLEAR') or (Upcase(s)='CLEAN') then
-  begin
-    for i:= low(Message_) to High(Message_) do
-    begin
-      Message_[i]:='';
-    end;
-    ClearTree();
-  end;
-
-  if (Upcase(s)='FREE') then
-  begin
-    FreeTree();
-  end;
-
-  //Message_[3]:=s;
-
-  if not((Upcase(s)='CLEAR') or (Upcase(s)='CLEAN') or (Upcase(s)='FREE')) then
-  begin
-    CreateTree(s);
-  end;
 end;
 
 procedure TForm1.TreeView1SelectionChanged(Sender: TObject);
@@ -369,7 +408,6 @@ begin
     if GetTypeKind(Treeview1.Selected.Data) = GetTypeKind(TRecordData) then  log2({$I %LINENUM%},' Type: TRecordData');
     log2({$I %LINENUM%},' Name_: '+P_TRecordData(Treeview1.Selected.Data)^.Name_ );
     log2({$I %LINENUM%},' Str_: '+P_TRecordData(Treeview1.Selected.Data)^.Str_ );
-    log2({$I %LINENUM%},' Suffix: '+P_TRecordData(Treeview1.Selected.Data)^.Suffix);
   end
   else
   begin
@@ -421,8 +459,6 @@ begin
 end;
 
 constructor TForm1.Create(TheOwner: TComponent);
-var
-  i:integer;
 begin
   inherited Create(TheOwner);
   Memo_:=Memo1;
@@ -431,14 +467,6 @@ begin
   MyData.Str_ := 'Hello';
   MyData.Int_ := 123;
 
-  SimpleIPCServer1.ServerID:='TreeView';
-  SimpleIPCServer1.Global:=true;
-  SimpleIPCServer1.StartServer;
-
-  for i:= low(Message_) to High(Message_) do
-  begin
-    Message_[i]:='';
-  end;
 
   //showmessage('TForm1.Create');
 end;
