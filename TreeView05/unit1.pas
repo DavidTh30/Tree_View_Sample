@@ -46,13 +46,14 @@ type
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure TreeView1SelectionChanged(Sender: TObject);
   private
-
+    procedure OnIdle(Sender: TObject; var Done: boolean);
   public
     constructor Create(TheOwner: TComponent); override;
     procedure ClearTree();
     procedure FreeTree();
     procedure CreateTree(s_:string);
     procedure SendMessage_(s:String);
+    procedure SendMemMessage_(s:String);
   end;
 
 var
@@ -61,6 +62,54 @@ var
 implementation
 
 {$R *.lfm}
+procedure TForm1.SendMemMessage_(s:String);
+var
+  IPCClient: TSimpleIPCClient;
+  CandidateIDs: array[0..3] of string;// Or array of string for older FPC versions
+  SrvID: string;
+begin
+
+  // List of IDs you expect or want to test for
+  //CandidateIDs := ['ServerOne', 'ServerTwo', 'AppInstance_123', 'MyServerID'];
+  CandidateIDs[0]:='MemoryUse5';
+  CandidateIDs[1]:='MemoryUse10';
+  CandidateIDs[2]:='MemoryUse15';
+  CandidateIDs[3]:='MemoryUse20';
+
+  IPCClient := TSimpleIPCClient.Create(nil);
+  try
+    for SrvID in CandidateIDs do
+    begin
+      IPCClient.ServerID := SrvID;
+      //IPCClient.Global := True; // Match the Global setting of your servers
+
+      if IPCClient.ServerRunning then
+      begin
+        IPCClient.Active:=true;
+        IPCClient.Connect;
+        IPCClient.SendStringMessage(s);
+        break;
+      end;
+    end;
+  finally
+    IPCClient.Disconnect;
+    IPCClient.Active:=false;
+    IPCClient.Free;
+  end;
+
+end;
+
+procedure TForm1.OnIdle(Sender: TObject; var Done: boolean);
+begin
+
+  SendMemMessage_('TotalAddressSpace\'+GetHeapStatus.TotalAddrSpace.ToString);
+  SendMemMessage_('TotalMemoryCommitted\'+GetHeapStatus.TotalCommitted.ToString);
+  SendMemMessage_('TotalAllocatedMemory\'+GetHeapStatus.TotalAllocated .ToString);
+  SendMemMessage_('TotalFreeMemory\'+GetHeapStatus.TotalFree.ToString);
+
+  //form1.Refresh;
+end;
+
 procedure TForm1.SendMessage_(s:String);
 var
   IPCClient: TSimpleIPCClient;
@@ -109,10 +158,10 @@ var
   TargetNode: TTreeNode;
   StepNode: TTreeNode;
   s:string;
-  Words: TStringArray;
 begin
+
+  SendMessage_({$I %LINE%}+' Full create');
   TextPath := s_;
-  Words:=TextPath.Split(ComboBox1.Text);
 
   TargetNode := TreeView1.Items.FindNodeWithTextPath(s_);
 
@@ -207,13 +256,22 @@ var
   CurrentNode: TTreeNode;
   P_TempoData: P_TRecordData;
 begin
+
+  SendMessage_({$I %LINE%}+' FreeTree');
+
   CurrentNode := TreeView1.Items.GetFirstNode;
 
   while CurrentNode <> nil do
   begin
-    if CurrentNode.Data = nil then log2({$I %LINENUM%},' ['+CurrentNode.Text+']: nil');
+    if CurrentNode.Data = nil then
+    begin
+      SendMessage_({$I %LINE%}+' ['+CurrentNode.Text+']: nil');
+      log2({$I %LINENUM%},' ['+CurrentNode.Text+']: nil');
+
+    end;
     if CurrentNode.Data <> nil then
     begin
+      SendMessage_({$I %LINE%}+' ['+CurrentNode.Text+']: Free memory');
       log2({$I %LINENUM%},' ['+CurrentNode.Text+']: Free memory');
       P_TempoData:=CurrentNode.Data;
       Dispose(P_TempoData);
@@ -228,7 +286,9 @@ var
   CurrentNode: TTreeNode;
   P_TempoData: P_TRecordData;
 begin
-CurrentNode := TreeView1.Items.GetFirstNode;
+
+  SendMessage_({$I %LINE%}+' ClearTree');
+  CurrentNode := TreeView1.Items.GetFirstNode;
 
   while CurrentNode <> nil do
   begin
@@ -297,6 +357,7 @@ end;
 
 procedure TForm1.Cmd_RootClick(Sender: TObject);
 begin
+  SendMessage_({$I %LINE%}+' Add Root');
   TreeView1.Items.Add(nil,Edit1.Text);
 end;
 
@@ -333,6 +394,7 @@ procedure TForm1.Cmd_AddData1Click(Sender: TObject);
 begin
   if (Treeview1.Selected <> nil) then
   begin
+    SendMessage_({$I %LINE%}+' Add Select node');
     TreeView1.Items.AddChild(Treeview1.Selected, Edit1.Text);
   end;
 end;
@@ -363,6 +425,7 @@ begin
   if (Treeview1.Selected <> nil) then
   if (Treeview1.Selected.Parent<>nil) then
   begin;
+    SendMessage_({$I %LINE%}+' Add Child In Child');
     TreeView1.Items.AddChild(Treeview1.Selected, Edit1.Text);
   end;
 end;
@@ -372,6 +435,7 @@ begin
   if (Treeview1.Selected <> nil) then
   if (Treeview1.Selected.Parent=nil) then
   begin;
+    SendMessage_({$I %LINE%}+' Add Child In Root');
     TreeView1.Items.AddChild(Treeview1.Selected, Edit1.Text);
   end;
 end;
@@ -395,11 +459,11 @@ begin
     CurrentNode := CurrentNode.GetNext;
   end;
 
+  SendMessage_({$I %LINE%}+' Good by');
+
 end;
 
 procedure TForm1.TreeView1SelectionChanged(Sender: TObject);
-//var
-//  CurrentNode: TTreeNode;
 begin
   if (Treeview1.Selected <> nil) then
   if (Treeview1.Selected.Data <> nil) then
@@ -414,44 +478,6 @@ begin
     log2({$I %LINENUM%},' Empty Data');
   end;
 
-  //if(Treeview1.Selected <> nil) then
-  //if(Treeview1.Selected.Parent <> nil) then
-  //begin
-  //  CurrentNode:=Treeview1.Selected.Parent;
-  //  if CurrentNode= nil then log2({$I %LINENUM%},' Parent: nil');
-  //  if CurrentNode <> nil then log2({$I %LINENUM%},' Parent: '+CurrentNode.Text);
-  //  log2({$I %LINENUM%},' Text: '+Treeview1.Selected.Text);
-  //  log2({$I %LINENUM%},' Index:'+Treeview1.Selected.Index.ToString);
-  //  log2({$I %LINENUM%},' AlphaSort: '+Treeview1.Selected.AlphaSort.ToInteger.ToString);
-  //  log2({$I %LINENUM%},' GetTextPath: '+Treeview1.Selected.GetTextPath);
-  //  log2({$I %LINENUM%},' Parent.Text: '+Treeview1.Selected.Parent.Text);
-  //  log2({$I %LINENUM%},' Parent.Index:'+Treeview1.Selected.Parent.Index.ToString);
-  //  log2({$I %LINENUM%},' Parent.AlphaSort: '+Treeview1.Selected.Parent.AlphaSort.ToInteger.ToString);
-  //  log2({$I %LINENUM%},' Parent.GetTextPath: '+Treeview1.Selected.Parent.GetTextPath);
-  //  //Treeview1.Selected.Parent.GetPrev
-  //  //log2({$I %LINENUM%},' '+Treeview1.Items[Treeview1.Parent.Index].Text);
-  //end
-  //else
-  //begin
-  //  log2({$I %LINENUM%},' Text: '+Treeview1.Selected.Text);
-  //  log2({$I %LINENUM%},' Index:'+Treeview1.Selected.Index.ToString);
-  //  log2({$I %LINENUM%},' AlphaSort: '+Treeview1.Selected.AlphaSort.ToInteger.ToString);
-  //  log2({$I %LINENUM%},' GetTextPath: '+Treeview1.Selected.GetTextPath);
-  //end;
-  //
-  //if(Treeview1.Selected <> nil) then
-  //if(Treeview1.Selected.Parent <> nil) then
-  //begin
-  //  ////Edit2.Text:=Treeview1.Selected.Parent.Text+'/'+Treeview1.Selected.Text;
-  //  ////Edit2.Text:=Treeview1.Selected.GetPrev.Text+'/'+Treeview1.Selected.Text;
-  //  ////Edit2.Text:=Treeview1.Selected.Parent.GetTextPath+'/'+Treeview1.Selected.Text;
-  //  //Edit2.Text:=Treeview1.Selected.GetTextPath;
-  //  ////Edit2.Text  := StringReplace(Edit2.Text, '/', ComboBox1.Text,[rfReplaceAll, rfIgnoreCase]);
-  //end
-  //else
-  //begin
-  //  //Edit2.Text:=Treeview1.Selected.Text;
-  //end;
 
   if(Treeview1.Selected <> nil) then Edit2.Text  := GetTextPath__(Treeview1.Selected,ComboBox1.Text);
   if(Treeview1.Selected = nil) then Edit2.Text  := '';
@@ -466,7 +492,7 @@ begin
   MyData.Name_ := 'Test';
   MyData.Str_ := 'Hello';
   MyData.Int_ := 123;
-
+  Application.OnIdle := @OnIdle;
 
   //showmessage('TForm1.Create');
 end;
