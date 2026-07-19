@@ -8,9 +8,9 @@ object Form1: TForm1
   Caption = 'Treeview05'
   ClientHeight = 373
   ClientWidth = 767
-  OnClose = FormClose
   Position = poWorkAreaCenter
-  LCLVersion = '3.4.0.0'
+  LCLVersion = '4.4.0.0'
+  OnClose = FormClose
   object Edit1: TEdit
     Left = 64
     Height = 23
@@ -35,8 +35,8 @@ object Form1: TForm1
     Width = 247
     ReadOnly = True
     TabOrder = 2
-    OnSelectionChanged = TreeView1SelectionChanged
     Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+    OnSelectionChanged = TreeView1SelectionChanged
   end
   object Memo1: TMemo
     AnchorSideRight.Control = Owner

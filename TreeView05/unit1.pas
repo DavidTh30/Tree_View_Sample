@@ -237,7 +237,7 @@ begin
         end;
       end;
       i:=i+1;
-      S_Step:=S_Step+ComboBox1.Text;
+      S_Step:=S_Step+'/';
     end;
   end;
 
@@ -430,7 +430,7 @@ begin
   end
   else
   begin
-    log2({$I %LINENUM%},' Not TMyNodeData');
+    log2({$I %LINENUM%},' Empty Data');
   end;
 
   if(Treeview1.Selected <> nil) then
