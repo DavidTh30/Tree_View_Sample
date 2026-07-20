@@ -14,6 +14,8 @@ type
 
   TForm1 = class(TForm)
     Cmd_AddData1: TButton;
+    Cmd_Create1: TButton;
+    Cmd_Create2: TButton;
     Cmd_Root: TButton;
     Cmd_ClearTextBox: TButton;
     Cmd_ClearTextBox1: TButton;
@@ -38,6 +40,8 @@ type
     procedure Cmd_ChildInChildClick(Sender: TObject);
     procedure Cmd_ChildInRootClick(Sender: TObject);
     procedure Cmd_ClearTextBox1Click(Sender: TObject);
+    procedure Cmd_Create1Click(Sender: TObject);
+    procedure Cmd_Create2Click(Sender: TObject);
     procedure Cmd_CreateClick(Sender: TObject);
     procedure Cmd_FreeClick(Sender: TObject);
     procedure Cmd_ClearTextBoxClick(Sender: TObject);
@@ -358,7 +362,7 @@ end;
 procedure TForm1.Cmd_RootClick(Sender: TObject);
 begin
   SendMessage_({$I %LINE%}+' Add Root');
-  TreeView1.Items.Add(nil,Edit1.Text);
+  TreeView1.Items.Add(nil,IntToStr(TreeView1.Items.GetLastNode.Index+1)+ ' '+Edit1.Text);
 end;
 
 procedure TForm1.ComboBox1EditingDone(Sender: TObject);
@@ -383,6 +387,35 @@ end;
 procedure TForm1.Cmd_ClearTextBox1Click(Sender: TObject);
 begin
   ClearTree();
+end;
+
+procedure TForm1.Cmd_Create1Click(Sender: TObject);
+var
+  TargetNode: TTreeNode;
+  s:string;
+begin
+
+  s:=Edit1.Text;
+  if ComboBox1.Text = '\' then s  := StringReplace(s, ComboBox1.Text, '/',[rfReplaceAll, rfIgnoreCase]);
+
+
+  //TargetNode := FindNodeByPath(TreeView1, 'Root\Folder\Subfolder', '\');
+  TargetNode := TreeView1.Items.FindNodeWithTextPath(s);
+
+  if TargetNode <> nil then
+  begin
+    TargetNode.ExpandParents;
+    TargetNode.Selected := True;
+    TreeView1.SetFocus;
+  end
+  else
+    log2({$I %LINENUM%},' case path not found!');
+
+end;
+
+procedure TForm1.Cmd_Create2Click(Sender: TObject);
+begin
+  TreeView1.Selected := FindNodeWithPath_(TreeView1,Edit1.Text, ComboBox1.Text);
 end;
 
 procedure TForm1.Cmd_CreateClick(Sender: TObject);
@@ -426,7 +459,7 @@ begin
   if (Treeview1.Selected.Parent<>nil) then
   begin;
     SendMessage_({$I %LINE%}+' Add Child In Child');
-    TreeView1.Items.AddChild(Treeview1.Selected, Edit1.Text);
+    TreeView1.Items.AddChild(Treeview1.Selected, IntToStr(TreeView1.Items[TreeView1.Selected.AbsoluteIndex].GetLastChild.Index+1)+' '+Edit1.Text);
   end;
 end;
 
@@ -436,7 +469,7 @@ begin
   if (Treeview1.Selected.Parent=nil) then
   begin;
     SendMessage_({$I %LINE%}+' Add Child In Root');
-    TreeView1.Items.AddChild(Treeview1.Selected, Edit1.Text);
+    TreeView1.Items.AddChild(Treeview1.Selected, IntToStr(TreeView1.Items[TreeView1.Selected.AbsoluteIndex].GetLastChild.Index+1)+' '+Edit1.Text);
   end;
 end;
 
